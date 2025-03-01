@@ -8,6 +8,8 @@ dotenv.config()
 
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
+const PORT = process.env.PORT || 3001;
+
 const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
@@ -150,6 +152,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-server.listen(3001, () => {
-  console.log("Server listening on http://localhost:3001");
+server.listen(PORT, () => {
+  console.log(`Server listening on ${PORT}`);
 });
