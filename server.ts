@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 
 dotenv.config()
 
+const args = process.argv.slice(2);
+
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 const PORT = process.env.PORT || 3001;
@@ -24,6 +26,28 @@ let updateMatt: boolean[] = new Array(seedsMatt.length).fill(false);
 let updateHail: boolean[] = new Array(seedsHail.length).fill(false);
 let lastDataUpdate: number = Date.now();
 let lastClientUpdate: number = Date.now();
+
+async function clearRedis() {
+  console.log("Clearing redis on start")
+  const existsMatt = await redis.exists("seedsMatt");
+  const existsHail = await redis.exists("seedsHail");
+
+  if (existsMatt) {
+    console.log("Matt exists. Clearing.");
+    await redis.del("seedsMatt")
+    await redis.rpush("seedsMatt", ...new Array(9).fill(0));
+  }
+
+  if (existsHail) {
+    console.log("Hail exists. Clearing");
+    await redis.del("seedsHail")
+    await redis.rpush("seedsHail", ...new Array(9).fill(0));
+  }
+}
+
+if (args.includes('--clearall')) {
+  clearRedis()
+}
 
 redis.lrange("seedsMatt", 0, -1, (err, value) => {
   if (value && value.length == seedsMatt.length) {
